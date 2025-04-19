@@ -283,6 +283,10 @@ def generate_screenshots(locale):
                 ScreenshotConfig(seed_views.SeedBIP85ApplicationModeView, dict(seed_num=0)),
                 ScreenshotConfig(seed_views.SeedBIP85SelectChildIndexView, dict(seed_num=0, num_words=24)),
                 ScreenshotConfig(seed_views.SeedBIP85InvalidChildIndexView, dict(seed_num=0, num_words=12)), 
+
+                ScreenshotConfig(seed_views.SeedBIP352SilentPaymentsOptionsView, dict(seed_num=0)),
+                ScreenshotConfig(seed_views.SeedBIP352GeneratePaymentAddressView, dict(seed_num=0)),
+                
                 ScreenshotConfig(seed_views.SeedWordsBackupTestPromptView, dict(seed_num=0)),
                 ScreenshotConfig(seed_views.SeedWordsBackupTestView, dict(seed_num=0, rand_seed=6102)),
                 ScreenshotConfig(seed_views.SeedWordsBackupTestMistakeView, dict(seed_num=0, cur_index=7, wrong_word="satoshi")),
