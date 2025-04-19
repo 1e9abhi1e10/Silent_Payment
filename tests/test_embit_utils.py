@@ -3,7 +3,9 @@ from binascii import unhexlify
 from embit.ec import PrivateKey
 from embit.networks import NETWORKS
 from seedsigner.models.settings_definition import SettingsConstants as SC
-from seedsigner.helpers import embit_utils
+from seedsigner.helpers import embit_utils, bech32m
+import importlib
+importlib.reload(embit_utils)
 
 
 def test_get_standard_derivation_path():
@@ -451,3 +453,22 @@ def test_bip352_encode_silent_payment_address():
     for network in test_networks:
         payment_addr = embit_utils.encode_silent_payment_address(scan_pubkey, spend_pubkey, embit_network=network)
         assert payment_addr.startswith("tsp")
+
+def encode_silent_payment_address(scanning_pubkey, signing_pubkey, embit_network: str = "main") -> str:
+    """
+    Encodes a Silent Payment address from scanning and signing public keys.
+    
+    Args:
+        scanning_pubkey: The scanning public key
+        signing_pubkey: The signing public key
+        embit_network: The network to use (main/test/regtest)
+        
+    Returns:
+        str: The Silent Payment address
+    """
+    # Get the raw bytes from the public keys
+    scanning_bytes = scanning_pubkey.serialize()
+    signing_bytes = signing_pubkey.serialize()
+    
+    # Use our custom bech32m implementation
+    return bech32m.encode_silent_payment_address(scanning_bytes, signing_bytes, network=embit_network)

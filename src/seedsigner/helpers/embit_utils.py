@@ -10,9 +10,6 @@ from embit.networks import NETWORKS
 from embit.util import secp256k1
 
 
-from seedsigner.models.settings_definition import SettingsConstants
-
-
 """
     Collection of generic embit-powered util methods.
 """
@@ -20,7 +17,15 @@ from seedsigner.models.settings_definition import SettingsConstants
 
 
 # TODO: Refactor `wallet_type` to conform to our `sig_type` naming convention
-def get_standard_derivation_path(network: str = SettingsConstants.MAINNET, wallet_type: str = SettingsConstants.SINGLE_SIG, script_type: str = SettingsConstants.NATIVE_SEGWIT) -> str:
+def get_standard_derivation_path(network: str = None, wallet_type: str = None, script_type: str = None) -> str:
+    from seedsigner.models.settings_definition import SettingsConstants
+    if network is None:
+        network = SettingsConstants.MAINNET
+    if wallet_type is None:
+        wallet_type = SettingsConstants.SINGLE_SIG
+    if script_type is None:
+        script_type = SettingsConstants.NATIVE_SEGWIT
+
     if network == SettingsConstants.MAINNET:
         network_path = "0'"
     elif network == SettingsConstants.TESTNET:
@@ -66,7 +71,13 @@ def get_xpub(seed_bytes, derivation_path: str, embit_network: str = "main") -> H
 
 
 
-def get_single_sig_address(xpub: HDKey, script_type: str = SettingsConstants.NATIVE_SEGWIT, index: int = 0, is_change: bool = False, embit_network: str = "main") -> str:
+def get_single_sig_address(xpub: HDKey, script_type: str = None, index: int = 0, is_change: bool = False, embit_network: str = None) -> str:
+    from seedsigner.models.settings_definition import SettingsConstants
+    if script_type is None:
+        script_type = SettingsConstants.NATIVE_SEGWIT
+    if embit_network is None:
+        embit_network = "main"
+
     if is_change:
         pubkey = xpub.derive([1,index]).key
     else:
@@ -86,7 +97,11 @@ def get_single_sig_address(xpub: HDKey, script_type: str = SettingsConstants.NAT
 
 
 
-def get_multisig_address(descriptor: Descriptor, index: int = 0, is_change: bool = False, embit_network: str = "main"):
+def get_multisig_address(descriptor: Descriptor, index: int = 0, is_change: bool = False, embit_network: str = None):
+    from seedsigner.models.settings_definition import SettingsConstants
+    if embit_network is None:
+        embit_network = "main"
+
     if is_change:
         branch_index = 1
     else:
@@ -123,6 +138,7 @@ def parse_derivation_path(derivation_path: str) -> dict:
 
     May return None for fields it cannot parse.
     """
+    from seedsigner.models.settings_definition import SettingsConstants
     # Support either m/44'/... or m/44h/... style
     derivation_path = derivation_path.replace("'", "h")
 
@@ -215,9 +231,6 @@ def encode_silent_payment_address(scanning_pubkey, signing_pubkey, embit_network
     Returns:
         str: The Silent Payment address
     """
-    import logging
-    logger = logging.getLogger(__name__)
-    
     from seedsigner.helpers import bech32m
     
     # Get the raw bytes from the public keys

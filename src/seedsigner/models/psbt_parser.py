@@ -396,14 +396,19 @@ class PSBTParser():
     def parse_silent_payment_output(psbt: PSBT, output_index: int) -> dict:
         """
         Parses a Silent Payment output from a PSBT.
+        Enforces air-gapped operation by only accepting PSBTs from QR codes.
         
         Args:
-            psbt: The PSBT to parse
+            psbt: The PSBT to parse (must be from QR code)
             output_index: The index of the output to parse
             
         Returns:
             dict: Dictionary containing the Silent Payment output details
         """
+        # Verify PSBT was loaded from QR code
+        if not hasattr(psbt, '_loaded_from_qr') or not psbt._loaded_from_qr:
+            raise ValueError("PSBT must be loaded from QR code for air-gapped operation")
+            
         output = psbt.outputs[output_index]
         
         # Check if this is a Silent Payment output
@@ -422,15 +427,20 @@ class PSBTParser():
     def sign_silent_payment_psbt(psbt: PSBT, seed: Seed, network: str = SettingsConstants.MAINNET) -> PSBT:
         """
         Signs a PSBT containing Silent Payment outputs.
+        Enforces air-gapped operation by only accepting PSBTs from QR codes.
         
         Args:
-            psbt: The PSBT to sign
+            psbt: The PSBT to sign (must be from QR code)
             seed: The seed to use for signing
             network: The network to use
             
         Returns:
             PSBT: The signed PSBT
         """
+        # Verify PSBT was loaded from QR code
+        if not hasattr(psbt, '_loaded_from_qr') or not psbt._loaded_from_qr:
+            raise ValueError("PSBT must be loaded from QR code for air-gapped operation")
+            
         # Get the signing key
         signing_key = seed.derive_bip352_signing_key(network=network)
         
@@ -454,15 +464,20 @@ class PSBTParser():
     def verify_silent_payment_input(psbt: PSBT, seed: Seed, network: str = SettingsConstants.MAINNET) -> bool:
         """
         Verifies that a PSBT input can be signed with the given seed.
+        Enforces air-gapped operation by only accepting PSBTs from QR codes.
         
         Args:
-            psbt: The PSBT to verify
+            psbt: The PSBT to verify (must be from QR code)
             seed: The seed to verify against
             network: The network to use
             
         Returns:
             bool: True if the input can be signed, False otherwise
         """
+        # Verify PSBT was loaded from QR code
+        if not hasattr(psbt, '_loaded_from_qr') or not psbt._loaded_from_qr:
+            raise ValueError("PSBT must be loaded from QR code for air-gapped operation")
+            
         signing_key = seed.derive_bip352_signing_key(network=network)
         
         for input in psbt.inputs:

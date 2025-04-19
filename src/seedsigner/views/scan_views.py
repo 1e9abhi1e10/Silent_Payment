@@ -170,13 +170,45 @@ class ScanView(View):
 
 
 
-class ScanPSBTView(ScanView):
-    instructions_text = _mft("Scan PSBT")
-    invalid_qr_type_message = _mft("Expected a PSBT")
+class ScanPSBTView(View):
+    """
+    View for scanning PSBT QR codes
+    """
+    def __init__(self):
+        super().__init__()
+        self.psbt = None
+        self.seed = self.controller.psbt_seed
 
-    @property
-    def is_valid_qr_type(self):
-        return self.decoder.is_psbt
+    def run(self):
+        # Scan PSBT QR code
+        qr_data = self.scan_qr()
+        if not qr_data:
+            return Destination(BackStackView)
+
+        try:
+            # Parse PSBT from QR data
+            from embit.psbt import PSBT
+            self.psbt = PSBT.from_string(qr_data)
+            # Mark as loaded from QR for air-gapped verification
+            self.psbt._loaded_from_qr = True
+
+            # Check if this is a Silent Payment PSBT
+            from seedsigner.models.psbt_parser import PSBTParser
+            silent_payment_outputs = []
+            for i in range(len(self.psbt.outputs)):
+                output = PSBTParser.parse_silent_payment_output(self.psbt, i)
+                if output:
+                    silent_payment_outputs.append(output)
+
+            if silent_payment_outputs:
+                # This is a Silent Payment PSBT
+                return Destination(PSBTSilentPaymentView, view_args={"psbt": self.psbt})
+            else:
+                # Regular PSBT
+                return Destination(PSBTView, view_args={"psbt": self.psbt})
+
+        except Exception as e:
+            return Destination(PSBTErrorView, view_args={"error": str(e)})
 
 
 
