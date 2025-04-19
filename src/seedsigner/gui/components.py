@@ -939,6 +939,7 @@ class FormattedAddress(BaseComponent):
     font_size: int = 24
     font_accent_color: str = GUIConstants.ACCENT_COLOR
     font_base_color: str = GUIConstants.LABEL_FONT_COLOR
+    line_spacing: int = GUIConstants.BODY_LINE_SPACING
 
     def __post_init__(self):
         super().__post_init__()
@@ -1073,7 +1074,7 @@ class FormattedAddress(BaseComponent):
                     ))
 
                 remaining_display_str = remaining_display_str[max_chars_per_line:]
-                cur_y += char_height + GUIConstants.BODY_LINE_SPACING
+                cur_y += char_height + self.line_spacing
         
         self.height = cur_y
     

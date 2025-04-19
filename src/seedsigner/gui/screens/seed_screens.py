@@ -593,6 +593,22 @@ class SeedExportXpubCustomDerivationScreen(KeyboardScreen):
         super().__post_init__()
 
 
+@dataclass
+class SeedBIP352GeneratePaymentAddressScreen(ButtonListScreen):
+    payment_address: str = None
+
+    def __post_init__(self):
+        self.title = "Payment Address"
+        self.is_bottom_list = True
+        super().__post_init__()
+
+        self.components.append(FormattedAddress(
+            address=self.payment_address,
+            font_size=GUIConstants.get_body_font_size() + 4,
+            line_spacing=GUIConstants.BODY_LINE_SPACING - 2,
+            screen_y=self.top_nav.height,
+        ))
+
 
 @dataclass
 class SeedExportXpubDetailsScreen(WarningEdgesMixin, ButtonListScreen):
