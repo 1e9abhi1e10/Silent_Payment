@@ -1,5 +1,6 @@
 import math
 import time
+from typing import List
 
 from dataclasses import dataclass
 from gettext import gettext as _
@@ -779,4 +780,80 @@ class PSBTFinalizeScreen(ButtonListScreen):
         self.components.append(TextArea(
             text=_("Click to approve this transaction"),
             screen_y=icon.screen_y + icon.height + 2*GUIConstants.COMPONENT_PADDING
+        ))
+
+
+@dataclass
+class PSBTSilentPaymentScreen(ButtonListScreen):
+    """
+    Screen for displaying PSBT Silent Payment outputs
+    """
+    outputs: List[dict] = None
+
+    def __post_init__(self):
+        self.title = "Silent Payment Outputs"
+        self.is_bottom_list = True
+        super().__post_init__()
+
+        # Add output information
+        for i, output in enumerate(self.outputs):
+            # Add amount
+            self.components.append(FormattedAddress(
+                address=f"Output {i + 1}: {output['amount']} sats",
+                font_size=GUIConstants.get_body_font_size(),
+                line_spacing=GUIConstants.BODY_LINE_SPACING,
+                screen_y=self.top_nav.height + (i * GUIConstants.BODY_LINE_SPACING * 4),
+            ))
+
+            # Add scanning pubkey
+            self.components.append(FormattedAddress(
+                address=f"Scanning: {output['scanning_pubkey'][:8]}...",
+                font_size=GUIConstants.get_body_font_size() - 2,
+                line_spacing=GUIConstants.BODY_LINE_SPACING - 2,
+                screen_y=self.top_nav.height + (i * GUIConstants.BODY_LINE_SPACING * 4) + GUIConstants.BODY_LINE_SPACING,
+            ))
+
+            # Add signing pubkey
+            self.components.append(FormattedAddress(
+                address=f"Signing: {output['signing_pubkey'][:8]}...",
+                font_size=GUIConstants.get_body_font_size() - 2,
+                line_spacing=GUIConstants.BODY_LINE_SPACING - 2,
+                screen_y=self.top_nav.height + (i * GUIConstants.BODY_LINE_SPACING * 4) + GUIConstants.BODY_LINE_SPACING * 2,
+            ))
+
+
+@dataclass
+class PSBTSignedScreen(ButtonListScreen):
+    """
+    Screen for displaying a signed PSBT
+    """
+    psbt: PSBT = None
+
+    def __post_init__(self):
+        self.title = "Signed PSBT"
+        self.is_bottom_list = True
+        super().__post_init__()
+
+        # Add PSBT information
+        self.components.append(FormattedAddress(
+            address="PSBT has been signed",
+            font_size=GUIConstants.get_body_font_size(),
+            line_spacing=GUIConstants.BODY_LINE_SPACING,
+            screen_y=self.top_nav.height,
+        ))
+
+        # Add input count
+        self.components.append(FormattedAddress(
+            address=f"Inputs: {len(self.psbt.inputs)}",
+            font_size=GUIConstants.get_body_font_size() - 2,
+            line_spacing=GUIConstants.BODY_LINE_SPACING - 2,
+            screen_y=self.top_nav.height + GUIConstants.BODY_LINE_SPACING * 2,
+        ))
+
+        # Add output count
+        self.components.append(FormattedAddress(
+            address=f"Outputs: {len(self.psbt.outputs)}",
+            font_size=GUIConstants.get_body_font_size() - 2,
+            line_spacing=GUIConstants.BODY_LINE_SPACING - 2,
+            screen_y=self.top_nav.height + GUIConstants.BODY_LINE_SPACING * 3,
         ))

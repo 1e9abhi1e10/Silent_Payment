@@ -203,13 +203,26 @@ def sign_message(seed_bytes: bytes, derivation: str, msg: bytes, compressed: boo
 
 
 # Basic BIP-352 Silent Payments support
-def encode_silent_payment_address(B_scan: ec.PublicKey, B_m: ec.PublicKey, embit_network: str = "main", version: int = 0) -> str:
+def encode_silent_payment_address(scanning_pubkey, signing_pubkey, embit_network: str = "main") -> str:
     """
-    Adapted from https://github.com/bitcoin/bips/blob/master/bip-0352/reference.py
-    Generates the recipient's reusable silent payment address for a given:
-        * scanning pubkey `B_scan`
-        * spending pubkey `B_m`
+    Encodes a Silent Payment address from scanning and signing public keys.
+    
+    Args:
+        scanning_pubkey: The scanning public key
+        signing_pubkey: The signing public key
+        embit_network: The network to use (main/test/regtest)
+        
+    Returns:
+        str: The Silent Payment address
     """
-    data = bech32.convertbits(B_scan.sec() + B_m.sec(), 8, 5)
-    hrp = "sp" if embit_network == "main" else "tsp"
-    return bech32.bech32_encode(bech32.Encoding.BECH32M, hrp, [version] + data)
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    from seedsigner.helpers import bech32m
+    
+    # Get the raw bytes from the public keys
+    scanning_bytes = scanning_pubkey.serialize()
+    signing_bytes = signing_pubkey.serialize()
+    
+    # Use our custom bech32m implementation
+    return bech32m.encode_silent_payment_address(scanning_bytes, signing_bytes, network=embit_network)
