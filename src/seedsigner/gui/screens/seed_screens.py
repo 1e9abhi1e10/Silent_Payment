@@ -595,10 +595,13 @@ class SeedExportXpubCustomDerivationScreen(KeyboardScreen):
 
 @dataclass
 class SeedBIP352GeneratePaymentAddressScreen(ButtonListScreen):
+    """
+    Screen for displaying a generated BIP-352 Silent Payment address
+    """
     payment_address: str = None
 
     def __post_init__(self):
-        self.title = "Payment Address"
+        self.title = "Silent Payment Address"
         self.is_bottom_list = True
         super().__post_init__()
 
@@ -607,6 +610,48 @@ class SeedBIP352GeneratePaymentAddressScreen(ButtonListScreen):
             font_size=GUIConstants.get_body_font_size() + 4,
             line_spacing=GUIConstants.BODY_LINE_SPACING - 2,
             screen_y=self.top_nav.height,
+        ))
+
+
+@dataclass
+class SeedBIP352ExportKeysScreen(ButtonListScreen):
+    """
+    Screen for displaying BIP-352 scanning and signing keys
+    """
+    scanning_key: str = None
+    signing_key: str = None
+
+    def __post_init__(self):
+        self.title = "Export Keys"
+        self.is_bottom_list = True
+        super().__post_init__()
+
+        # Add scanning key display
+        self.components.append(FormattedAddress(
+            address="Scanning Key:",
+            font_size=GUIConstants.get_body_font_size(),
+            line_spacing=GUIConstants.BODY_LINE_SPACING,
+            screen_y=self.top_nav.height,
+        ))
+        self.components.append(FormattedAddress(
+            address=self.scanning_key,
+            font_size=GUIConstants.get_body_font_size() - 2,
+            line_spacing=GUIConstants.BODY_LINE_SPACING - 2,
+            screen_y=self.top_nav.height + GUIConstants.BODY_LINE_SPACING * 2,
+        ))
+
+        # Add signing key display
+        self.components.append(FormattedAddress(
+            address="Signing Key:",
+            font_size=GUIConstants.get_body_font_size(),
+            line_spacing=GUIConstants.BODY_LINE_SPACING,
+            screen_y=self.top_nav.height + GUIConstants.BODY_LINE_SPACING * 4,
+        ))
+        self.components.append(FormattedAddress(
+            address=self.signing_key,
+            font_size=GUIConstants.get_body_font_size() - 2,
+            line_spacing=GUIConstants.BODY_LINE_SPACING - 2,
+            screen_y=self.top_nav.height + GUIConstants.BODY_LINE_SPACING * 6,
         ))
 
 

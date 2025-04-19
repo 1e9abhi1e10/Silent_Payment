@@ -594,3 +594,71 @@ class PSBTSigningErrorView(View):
 
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
+
+
+class PSBTSilentPaymentView(View):
+    """
+    View for handling PSBTs with Silent Payment outputs
+    """
+    def __init__(self, psbt: PSBT):
+        super().__init__()
+        self.psbt = psbt
+        self.silent_payment_outputs = []
+        
+        # Find all Silent Payment outputs
+        for i in range(len(psbt.outputs)):
+            output = PSBTParser.parse_silent_payment_output(psbt, i)
+            if output:
+                self.silent_payment_outputs.append(output)
+
+    def run(self):
+        if not self.silent_payment_outputs:
+            # No Silent Payment outputs found
+            return Destination(PSBTErrorView, view_args={"error": "No Silent Payment outputs found"})
+
+        # Display Silent Payment outputs
+        selected_menu_num = self.run_screen(
+            psbt_screens.PSBTSilentPaymentScreen,
+            outputs=self.silent_payment_outputs
+        )
+
+        if selected_menu_num == RET_CODE__BACK_BUTTON:
+            return Destination(BackStackView)
+
+        # Find a seed that can sign this PSBT
+        for i, seed in enumerate(self.controller.storage.seeds):
+            if PSBTParser.verify_silent_payment_input(self.psbt, seed, network=self.settings.get_value(SettingsConstants.SETTING__NETWORK)):
+                self.controller.psbt_seed = seed
+                return Destination(PSBTSignView, view_args={"psbt": self.psbt})
+
+        # No matching seed found
+        return Destination(PSBTErrorView, view_args={"error": "No matching seed found"})
+
+
+class PSBTSignView(View):
+    """
+    View for signing a PSBT
+    """
+    def __init__(self, psbt: PSBT):
+        super().__init__()
+        self.psbt = psbt
+        self.seed = self.controller.psbt_seed
+
+    def run(self):
+        # Sign the PSBT
+        signed_psbt = PSBTParser.sign_silent_payment_psbt(
+            self.psbt,
+            self.seed,
+            network=self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+        )
+
+        # Display the signed PSBT
+        selected_menu_num = self.run_screen(
+            psbt_screens.PSBTSignedScreen,
+            psbt=signed_psbt
+        )
+
+        if selected_menu_num == RET_CODE__BACK_BUTTON:
+            return Destination(BackStackView)
+
+        return Destination(PSBTExportView, view_args={"psbt": signed_psbt})

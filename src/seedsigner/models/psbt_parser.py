@@ -390,3 +390,84 @@ class PSBTParser():
         is_owner = descriptor.owns(output)
         # print(f"{self.psbt.tx.vout[i].script_pubkey.address()} | {output.value} | {is_owner}")
         return is_owner
+
+
+    @staticmethod
+    def parse_silent_payment_output(psbt: PSBT, output_index: int) -> dict:
+        """
+        Parses a Silent Payment output from a PSBT.
+        
+        Args:
+            psbt: The PSBT to parse
+            output_index: The index of the output to parse
+            
+        Returns:
+            dict: Dictionary containing the Silent Payment output details
+        """
+        output = psbt.outputs[output_index]
+        
+        # Check if this is a Silent Payment output
+        if not hasattr(output, 'silent_payment_data'):
+            return None
+            
+        return {
+            'scanning_pubkey': output.silent_payment_data.scanning_pubkey,
+            'signing_pubkey': output.silent_payment_data.signing_pubkey,
+            'amount': output.amount,
+            'script_pubkey': output.script_pubkey
+        }
+
+
+    @staticmethod
+    def sign_silent_payment_psbt(psbt: PSBT, seed: Seed, network: str = SettingsConstants.MAINNET) -> PSBT:
+        """
+        Signs a PSBT containing Silent Payment outputs.
+        
+        Args:
+            psbt: The PSBT to sign
+            seed: The seed to use for signing
+            network: The network to use
+            
+        Returns:
+            PSBT: The signed PSBT
+        """
+        # Get the signing key
+        signing_key = seed.derive_bip352_signing_key(network=network)
+        
+        # Sign each input
+        for i, input in enumerate(psbt.inputs):
+            # Get the derivation path for this input
+            derivation_path = None
+            for pub, path in input.bip32_derivations.items():
+                if path.fingerprint == signing_key.fingerprint:
+                    derivation_path = path.path
+                    break
+                    
+            if derivation_path:
+                # Sign the input
+                psbt.sign_with(signing_key, input_index=i)
+                
+        return psbt
+
+
+    @staticmethod
+    def verify_silent_payment_input(psbt: PSBT, seed: Seed, network: str = SettingsConstants.MAINNET) -> bool:
+        """
+        Verifies that a PSBT input can be signed with the given seed.
+        
+        Args:
+            psbt: The PSBT to verify
+            seed: The seed to verify against
+            network: The network to use
+            
+        Returns:
+            bool: True if the input can be signed, False otherwise
+        """
+        signing_key = seed.derive_bip352_signing_key(network=network)
+        
+        for input in psbt.inputs:
+            for pub, path in input.bip32_derivations.items():
+                if path.fingerprint == signing_key.fingerprint:
+                    return True
+                    
+        return False

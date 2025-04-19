@@ -1,6 +1,7 @@
 import pytest
 from binascii import unhexlify
 from embit.ec import PrivateKey
+from embit.networks import NETWORKS
 from seedsigner.models.settings_definition import SettingsConstants as SC
 from seedsigner.helpers import embit_utils
 

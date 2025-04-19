@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any, List, Union
 
 from seedsigner.helpers.l10n import mark_for_translation as _mft
 
@@ -266,7 +266,7 @@ class SettingsEntry:
     visibility: str = SettingsConstants.VISIBILITY__GENERAL
     type: str = SettingsConstants.TYPE__ENABLED_DISABLED
     help_text: str = None
-    selection_options: list[tuple[str | int], str] = None
+    selection_options: list[tuple[Union[str, int], str]] = None
     default_value: Any = None
 
     def __post_init__(self):
