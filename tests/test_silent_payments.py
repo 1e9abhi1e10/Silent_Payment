@@ -57,6 +57,7 @@ class TestSilentPayments(unittest.TestCase):
         """Test parsing Silent Payment outputs from PSBTs"""
         # Create a test PSBT with Silent Payment output
         psbt = PSBT()
+        psbt._loaded_from_qr = True  # Mark as loaded from QR for air-gapped verification
         psbt.outputs = []
         output = type('TestOutput', (), {
             'silent_payment_data': type('TestSPData', (), {
@@ -80,6 +81,7 @@ class TestSilentPayments(unittest.TestCase):
         """Test verifying Silent Payment inputs"""
         # Create a test PSBT with Silent Payment input
         psbt = PSBT()
+        psbt._loaded_from_qr = True  # Mark as loaded from QR for air-gapped verification
         psbt.inputs = []
         input = type('TestInput', (), {
             'bip32_derivations': {

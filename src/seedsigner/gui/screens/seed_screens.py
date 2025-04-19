@@ -10,7 +10,7 @@ from typing import List
 from seedsigner.hardware.buttons import HardwareButtons, HardwareButtonsConstants
 from seedsigner.helpers.qr import QR
 from seedsigner.gui.components import (Button, FontAwesomeIconConstants, Fonts, FormattedAddress, IconButton,
-    IconTextLine, SeedSignerIconConstants, TextArea, GUIConstants, reflow_text_into_pages)
+    IconTextLine, SeedSignerIconConstants, TextArea, GUIConstants, reflow_text_into_pages, QRDisplay)
 from seedsigner.gui.keyboard import Keyboard, TextEntryDisplay
 from seedsigner.gui.renderer import Renderer
 from seedsigner.models.threads import BaseThread, ThreadsafeCounter
@@ -1729,3 +1729,75 @@ class SeedSignMessageConfirmAddressScreen(ButtonListScreen):
             screen_y=derivation_path_display.screen_y + derivation_path_display.height + 2*GUIConstants.COMPONENT_PADDING,
         )
         self.components.append(address_display)
+
+
+@dataclass
+class SeedBIP352AirGappedAddressScreen(ButtonListScreen):
+    """
+    Screen for displaying a Silent Payment address as a QR code
+    """
+    payment_address: str = None
+
+    def __post_init__(self):
+        self.title = "Silent Payment Address"
+        self.is_bottom_list = True
+        super().__post_init__()
+
+        # Add QR code
+        self.components.append(QRDisplay(
+            qr_data=self.payment_address,
+            width=240,
+            height=240,
+            screen_y=self.top_nav.height + 20
+        ))
+
+        # Add address text
+        self.components.append(FormattedAddress(
+            address=self.payment_address,
+            font_size=GUIConstants.get_body_font_size(),
+            line_spacing=GUIConstants.BODY_LINE_SPACING,
+            screen_y=self.top_nav.height + 280
+        ))
+
+
+@dataclass
+class SeedBIP352AirGappedKeysScreen(ButtonListScreen):
+    """
+    Screen for displaying Silent Payment keys as QR codes
+    """
+    keys: dict = None
+
+    def __post_init__(self):
+        self.title = "Silent Payment Keys"
+        self.is_bottom_list = True
+        super().__post_init__()
+
+        # Add scanning key QR
+        self.components.append(QRDisplay(
+            qr_data=self.keys["scanning_key"],
+            width=240,
+            height=240,
+            screen_y=self.top_nav.height + 20
+        ))
+
+        # Add scanning key label
+        self.components.append(TextArea(
+            text="Scanning Key",
+            font_size=GUIConstants.get_body_font_size(),
+            screen_y=self.top_nav.height + 280
+        ))
+
+        # Add signing key QR
+        self.components.append(QRDisplay(
+            qr_data=self.keys["signing_key"],
+            width=240,
+            height=240,
+            screen_y=self.top_nav.height + 320
+        ))
+
+        # Add signing key label
+        self.components.append(TextArea(
+            text="Signing Key",
+            font_size=GUIConstants.get_body_font_size(),
+            screen_y=self.top_nav.height + 580
+        ))

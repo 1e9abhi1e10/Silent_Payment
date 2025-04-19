@@ -2389,3 +2389,97 @@ class SeedSignMessageSignedMessageQRView(View):
 
         # Exiting/Canceling the QR display screen always returns Home
         return Destination(MainMenuView, skip_current_view=True)
+
+
+
+class SeedBIP352AirGappedView(View):
+    """
+    View for air-gapped Silent Payment operations
+    """
+    GENERATE_ADDRESS = ButtonOption("Generate Address")
+    EXPORT_KEYS = ButtonOption("Export Keys")
+    SCAN_PSBT = ButtonOption("Scan PSBT")
+    BACK = ButtonOption("Back")
+
+    def __init__(self, seed_num: int):
+        super().__init__()
+        self.seed_num = seed_num
+        self.seed = self.controller.get_seed(self.seed_num)
+        self.account = 0  # Default to account 0
+        self.network = self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+
+    def run(self):
+        button_data = [
+            self.GENERATE_ADDRESS,
+            self.EXPORT_KEYS,
+            self.SCAN_PSBT,
+            self.BACK
+        ]
+
+        selected_menu_num = self.run_screen(
+            ButtonListScreen,
+            title="Air-Gapped Silent Payments",
+            is_button_text_centered=False,
+            button_data=button_data
+        )
+
+        if selected_menu_num == RET_CODE__BACK_BUTTON:
+            return Destination(BackStackView)
+
+        if button_data[selected_menu_num] == self.GENERATE_ADDRESS:
+            return Destination(SeedBIP352AirGappedAddressView, view_args={"seed_num": self.seed_num})
+
+        elif button_data[selected_menu_num] == self.EXPORT_KEYS:
+            return Destination(SeedBIP352AirGappedKeysView, view_args={"seed_num": self.seed_num})
+
+        elif button_data[selected_menu_num] == self.SCAN_PSBT:
+            from seedsigner.views.scan_views import ScanPSBTView
+            self.controller.psbt_seed = self.seed
+            return Destination(ScanPSBTView)
+
+        elif button_data[selected_menu_num] == self.BACK:
+            return Destination(BackStackView)
+
+class SeedBIP352AirGappedAddressView(View):
+    """
+    View for displaying Silent Payment address as QR code
+    """
+    def __init__(self, seed_num: int):
+        super().__init__()
+        self.seed_num = seed_num
+        self.seed = self.controller.get_seed(self.seed_num)
+        self.network = self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+        self.address = self.seed.generate_bip352_silent_payment_address(network=self.network)
+
+    def run(self):
+        selected_menu_num = self.run_screen(
+            seed_screens.SeedBIP352AirGappedAddressScreen,
+            payment_address=self.address
+        )
+
+        if selected_menu_num == RET_CODE__BACK_BUTTON:
+            return Destination(BackStackView)
+
+        return Destination(SeedBIP352AirGappedView, view_args={"seed_num": self.seed_num})
+
+class SeedBIP352AirGappedKeysView(View):
+    """
+    View for displaying Silent Payment keys as QR codes
+    """
+    def __init__(self, seed_num: int):
+        super().__init__()
+        self.seed_num = seed_num
+        self.seed = self.controller.get_seed(self.seed_num)
+        self.network = self.settings.get_value(SettingsConstants.SETTING__NETWORK)
+        self.keys = self.seed.export_bip352_keys(network=self.network)
+
+    def run(self):
+        selected_menu_num = self.run_screen(
+            seed_screens.SeedBIP352AirGappedKeysScreen,
+            keys=self.keys
+        )
+
+        if selected_menu_num == RET_CODE__BACK_BUTTON:
+            return Destination(BackStackView)
+
+        return Destination(SeedBIP352AirGappedView, view_args={"seed_num": self.seed_num})
